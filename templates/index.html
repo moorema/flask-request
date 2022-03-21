@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>index</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-12"></div>
+        {#        <div class="col-2">col</div>#}
+        <div class="jumbotron jumbotron-fluid">
+            <div class="container">
+                <h1 class="display-4">省份代码</h1>
+                <p class="lead">
+                    11 北京市--- 43 湖南省---
+                    12 天津市--- 44 广东省---
+                    13 河北省--- 45 广西壮族自治区---
+                    14 山西省--- 46 海南省---
+                    15 内蒙古自治区--- 50 重庆市---
+                    21 辽宁省--- 51 四川省---
+                    22 吉林省--- 52 贵州省---
+                    23 黑龙江省--- 53 云南省---
+                    31 上海市--- 54 西藏自治区---
+                    32 江苏省--- 61 陕西省---
+                    33 浙江省--- 62 甘肃省---
+                    34 安徽省--- 63 青海省---
+                    35 福建省--- 64 宁夏回族自治区---
+                    36 江西省--- 65 新疆维吾尔自治区---
+                    37 山东省--- 71 台湾省---
+                    41 河南省--- 81 香港特别行政区---
+                    42 湖北省--- 82 澳门特别行政区</p>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-4">
+            <form action="" method="post">
+                <div class="mb-3">
+                    <label for="exampleInputEmail1" class="form-label">订阅数据邮箱</label>
+                    <input type="email" class="form-control" id="exampleInputEmail1"
+                           aria-describedby="emailHelp" name="email">
+                    {#            <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>#}
+                </div>
+                <div class="mb-3">
+                    <label for="exampleInputPassword1" class="form-label">省份代码</label>
+                    <input type="text" class="form-control" id="exampleInputPassword1" name="num">
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+            {#            1One of three columns#}
+
+        </div>
+        <div class="col-8">
+            {#            2One of three columns#}
+            订阅信息
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">邮箱</th>
+                    <th scope="col">以订阅</th>
+                    <th scope="col">操作</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <th scope="row">信息</th>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {{ dss2 }}
+                        </td>
+                        <td><a href="/{{ user.id }}">删除</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+
+
+        </div>
+
+    </div>
+</div>
+</body>
+</html>
