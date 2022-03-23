@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, g
+from flask import Flask, render_template, request, redirect, flash
 import sqlite3
 from flask_sqlalchemy import SQLAlchemy
 
@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['SECRET_KEY'] = 'FSDFSDFSDFSD4564313'
 db = SQLAlchemy(app)
 
 
@@ -121,6 +122,7 @@ def hello_world():  # put application's code here
                     db.session.commit()
                     # return render_template("index.html", ne=ne, nn=nn, qsid=qsid)
                     # return "订阅成功"
+                    flash('订阅修改成功')
                     return redirect("/")
                 elif email:
                     print(email)
@@ -131,12 +133,16 @@ def hello_world():  # put application's code here
                     db.session.add(new_user)
                     db.session.commit()
                     # return render_template("index.html", ne=ne, nn=nn, qsid=qsid)
+                    flash('订阅成功')
                     return redirect("/")
                 else:
-                    print("请正确输入email和省份代码")
+                    flash('请正确输入email和省份代码')
+                    # print("请正确输入email和省份代码")
                 return redirect("/")
             else:
-                return "省份代码不对,请重新输入"
+                flash('省份代码不对,请重新输入')
+                return redirect("/")
+                # return "省份代码不对,请重新输入"
 
 
 # 个木查询字符串删除信息
@@ -146,6 +152,7 @@ def delid(qsid):
     if del_user is not None:
         db.session.delete(del_user)
         db.session.commit()
+    flash("删除成功")
     return redirect("/")
 
 
