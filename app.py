@@ -1,74 +1,44 @@
 from flask import Flask, render_template, request, redirect, flash
 import sqlite3
+from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
+import os
+from huey import SqliteHuey
+from datetime import *
 
 app = Flask(__name__)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+huey = SqliteHuey(filename='huey.db')
+huey.immediate = True  # 即使模式,测试和开发用
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pc.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['SECRET_KEY'] = 'FSDFSDFSDFSD4564313'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 db = SQLAlchemy(app)
+app.config['MAIL_SERVER'] = 'smtp.qq.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_DEBUG'] = True
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+# app.config['MAIL_USERNAME'] = '472381899@qq.com'
+# app.config['MAIL_PASSWORD'] = 'rzdlhwmecuiebiid'
+mail = Mail(app)
 
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(128), nullable=False, unique=True)
     sshengfen = db.Column(db.String(128), nullable=False)
+    sshengfenstr = db.Column(db.String(128), nullable=False)
 
 
 @app.route('/', methods=['GET', 'POST'])
 def hello_world():  # put application's code here
     # 完整省份代码
-    global dss2
-    sfen = {
-
-        '11': '北京市',
-        '43': '湖南省',
-        '12': '天津市',
-        '44': '广东省',
-        '13': '河北省',
-        '45': '广西壮族自治区',
-        '14': '山西省',
-        '46': '海南省',
-        '15': '内蒙古自治区',
-        '50': '重庆市',
-        '21': '辽宁省',
-        '51': '四川省',
-        '22': '吉林省',
-        '52': '贵州省',
-        '23': '黑龙江省',
-        '53': '云南省',
-        '31': '上海市',
-        '54': '西藏自治区',
-        '32': '江苏省',
-        '61': '陕西省',
-        '33': '浙江省',
-        '62': '甘肃省',
-        '34': '安徽省',
-        '63': '青海省',
-        '35': '福建省',
-        '64': '宁夏回族自治区',
-        '36': '江西省',
-        '65': '新疆维吾尔自治区',
-        '37': '山东省',
-        '71': '台湾省',
-        '41': '河南省',
-        '81': '香港特别行政区',
-        '42': '湖北省',
-        '82': '澳门特别行政区'
-    }
     if request.method == "GET":
-
         users = User.query.all()
         if users:
-            for user in users:
-                ss = user.sshengfen
-                ss = ss.split(',')
-                dss = []
-                for s in ss:
-                    dss.append(sfen[s])
-                dss2 = ','.join(dss)
-            return render_template('index.html', users=users, dss2=dss2)
+            return render_template('index.html', users=users)
         else:
             return render_template('index.html')
     else:
@@ -112,40 +82,103 @@ def hello_world():  # put application's code here
             '42',
             '82'
         ]
+        sfen = {
+
+            '11': '北京市',
+            '43': '湖南省',
+            '12': '天津市',
+            '44': '广东省',
+            '13': '河北省',
+            '45': '广西壮族自治区',
+            '14': '山西省',
+            '46': '海南省',
+            '15': '内蒙古自治区',
+            '50': '重庆市',
+            '21': '辽宁省',
+            '51': '四川省',
+            '22': '吉林省',
+            '52': '贵州省',
+            '23': '黑龙江省',
+            '53': '云南省',
+            '31': '上海市',
+            '54': '西藏自治区',
+            '32': '江苏省',
+            '61': '陕西省',
+            '33': '浙江省',
+            '62': '甘肃省',
+            '34': '安徽省',
+            '63': '青海省',
+            '35': '福建省',
+            '64': '宁夏回族自治区',
+            '36': '江西省',
+            '65': '新疆维吾尔自治区',
+            '37': '山东省',
+            '71': '台湾省',
+            '41': '河南省',
+            '81': '香港特别行政区',
+            '42': '湖北省',
+            '82': '澳门特别行政区'
+        }
+        # 提交的省份代码转换成省份纯数据库
+        cunlist = []
         nums = num.split(',')
+        for cl in nums:
+            cunlist.append(sfen[cl])
+        cunstr = ",".join(cunlist)
+        # 发邮件
+        msg = Message(subject="Hello World!",
+                      sender="472381899@qq.com",
+                      recipients=[email])
+        msg.body = "testing"
         for snums in nums:
             if snums in sfennum:  # 校验前端输入的代码是否符合规定
+                filename_a = "static/" + str(date.today()) + "." + sfen[str(snums)] + ".csv"
+                # print(filename_a)
                 # 增删改查
                 old_user = User.query.filter_by(email=email).first()
                 if old_user:
                     old_user.sshengfen = num
+                    old_user.sshengfenstr = cunstr
                     db.session.commit()
-                    # return render_template("index.html", ne=ne, nn=nn, qsid=qsid)
-                    # return "订阅成功"
+                    # 发邮件
+                    # print(email)
+                    # print(os.environ.get('MAIL_PASSWORD'))
+                    # with app.open_resource(filename_beijing) as fp:
+                    #     msg.attach(filename_beijing, 'text/plain', fp.read())
+                    # send_async_email(msg)
+                    # mail.send(msg)
                     flash('订阅修改成功')
                     return redirect("/")
                 elif email:
-                    print(email)
-                    print(num)
+                    # print(email)
+                    # print(num)
                     new_user = User()
                     new_user.email = email
+                    new_user.sshengfenstr = cunstr
                     new_user.sshengfen = num
                     db.session.add(new_user)
                     db.session.commit()
-                    # return render_template("index.html", ne=ne, nn=nn, qsid=qsid)
+                    # 发邮件
+                    # send_async_email(msg)
                     flash('订阅成功')
                     return redirect("/")
                 else:
                     flash('请正确输入email和省份代码')
-                    # print("请正确输入email和省份代码")
                 return redirect("/")
             else:
-                flash('省份代码不对,请重新输入')
+                flash('不能为空,请重新输入')
                 return redirect("/")
-                # return "省份代码不对,请重新输入"
+        # 发邮件
 
 
-# 个木查询字符串删除信息
+# huey邮件处理
+@huey.task(retries=3)
+def send_async_email(msg):
+    with app.app_context():
+        mail.send(msg)
+
+
+# 查询字符串删除信息
 @app.route("/<int:qsid>")
 def delid(qsid):
     del_user = User.query.filter_by(id=qsid).first()
