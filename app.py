@@ -136,6 +136,7 @@ def hello_world():  # put application's code here
                 # print(filename_a)
                 # 增删改查
                 old_user = User.query.filter_by(email=email).first()
+
                 if old_user:
                     old_user.sshengfen = num
                     old_user.sshengfenstr = cunstr
