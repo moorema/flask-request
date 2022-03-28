@@ -122,9 +122,9 @@ def hello_world():  # put application's code here
         # 提交的省份代码转换成省份纯数据库
         cunlist = []
         nums = num.split(',')
-        for cl in nums:
-            cunlist.append(sfen[cl])
-        cunstr = ",".join(cunlist)
+        # for cl in nums:
+        #     cunlist.append(sfen[cl])
+        # cunstr = ",".join(cunlist)
         # 发邮件
         msg = Message(subject="Hello World!",
                       sender="472381899@qq.com",
@@ -138,6 +138,9 @@ def hello_world():  # put application's code here
                 old_user = User.query.filter_by(email=email).first()
 
                 if old_user:
+                    for cl in nums:
+                        cunlist.append(sfen[cl])
+                    cunstr = ",".join(cunlist)
                     old_user.sshengfen = num
                     old_user.sshengfenstr = cunstr
                     db.session.commit()
@@ -153,6 +156,9 @@ def hello_world():  # put application's code here
                 elif email:
                     # print(email)
                     # print(num)
+                    for cl in nums:
+                        cunlist.append(sfen[cl])
+                    cunstr = ",".join(cunlist)
                     new_user = User()
                     new_user.email = email
                     new_user.sshengfenstr = cunstr
