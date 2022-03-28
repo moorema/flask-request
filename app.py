@@ -121,36 +121,41 @@ def hello_world():  # put application's code here
         }
         # 提交的省份代码转换成省份纯数据库
         cunlist = []
+        filename_list = []
         nums = num.split(',')
-        # for cl in nums:
-        #     cunlist.append(sfen[cl])
-        # cunstr = ",".join(cunlist)
         # 发邮件
         msg = Message(subject="Hello World!",
                       sender="472381899@qq.com",
                       recipients=[email])
         msg.body = "testing"
         for snums in nums:
+            # filename_a = "static/" + str(date.today()) + "." + sfen[str(snums)] + ".csv"
+            # print(filename_a)
+            # print(snums)
             if snums in sfennum:  # 校验前端输入的代码是否符合规定
-                filename_a = "static/" + str(date.today()) + "." + sfen[str(snums)] + ".csv"
-                # print(filename_a)
+
                 # 增删改查
                 old_user = User.query.filter_by(email=email).first()
-
                 if old_user:
                     for cl in nums:
                         cunlist.append(sfen[cl])
                     cunstr = ",".join(cunlist)
+
+                    for cs in cunstr.split(","):
+                        filename_list.append("static/" + str(date.today()) + "." + cs + ".csv")
+                    print(filename_list)
+
                     old_user.sshengfen = num
                     old_user.sshengfenstr = cunstr
                     db.session.commit()
                     # 发邮件
-                    # print(email)
-                    # print(os.environ.get('MAIL_PASSWORD'))
+                    for flist in filename_list:
+                        with app.open_resource(flist) as fp:
+                            msg.attach(flist, 'text/plain', fp.read())
                     # with app.open_resource(filename_beijing) as fp:
                     #     msg.attach(filename_beijing, 'text/plain', fp.read())
                     # send_async_email(msg)
-                    # mail.send(msg)
+                    mail.send(msg)
                     flash('订阅修改成功')
                     return redirect("/")
                 elif email:
@@ -159,6 +164,14 @@ def hello_world():  # put application's code here
                     for cl in nums:
                         cunlist.append(sfen[cl])
                     cunstr = ",".join(cunlist)
+                    for cs in cunstr.split(","):
+                        filename_list.append("static/" + str(date.today()) + "." + cs + ".csv")
+                    print(filename_list)
+
+                    for flist in filename_list:
+                        with app.open_resource(flist) as fp:
+                            msg.attach(flist, 'text/plain', fp.read())
+
                     new_user = User()
                     new_user.email = email
                     new_user.sshengfenstr = cunstr
@@ -167,6 +180,7 @@ def hello_world():  # put application's code here
                     db.session.commit()
                     # 发邮件
                     # send_async_email(msg)
+                    mail.send(msg)
                     flash('订阅成功')
                     return redirect("/")
                 else:
