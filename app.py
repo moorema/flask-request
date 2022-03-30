@@ -1,12 +1,35 @@
+import datetime
+import os
+from datetime import *
+from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from flask import Flask, render_template, request, redirect, flash
-import sqlite3
+from flask_apscheduler import APScheduler
 from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
-import os
-from huey import SqliteHuey, crontab
-from datetime import *
+from huey import SqliteHuey
 
 app = Flask(__name__)
+
+
+class SchedulerConfig(object):
+    # 持久化配置，数据持久化至MongoDB
+    SCHEDULER_JOBSTORES = {
+        'default': SQLAlchemyJobStore(url='sqlite:///jobstores.db')}
+    # 线程池配置，最大20个线程
+    SCHEDULER_EXECUTORS = {'default': ThreadPoolExecutor(20)}
+    # 调度开关开启
+    SCHEDULER_API_ENABLED = True
+    # 设置容错时间为 1小时
+    SCHEDULER_JOB_DEFAULTS = {'misfire_grace_time': 3600}
+    # 配置时区
+    SCHEDULER_TIMEZONE = 'Asia/Shanghai'
+
+
+app.config.from_object(SchedulerConfig())
+scheduler = APScheduler()
+scheduler.init_app(app)
+
 huey = SqliteHuey(filename='huey.db')
 huey.immediate = False  # 即使模式,测试和开发用
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pc.db'
@@ -231,10 +254,16 @@ def send_async_email(msg):
         mail.send(msg)
 
 
-# 管理定时发送邮件
-# @app.route("/dingshi_email", methods=['GET', 'POST'])
-# def ds_email():
-#     return "aaa"
+# @scheduler.task('cron', id='auto_send', day_of_week='0,2', hour='9')
+@scheduler.task('interval', id='auto_send', seconds=3)
+def job1():
+    auto_send_user = User.query.all()
+    print(auto_send_user)
+    for user in auto_send_user:
+        print(user.isActive)
+    # for i in auto_send_user:
+
+    print('---------')
 
 
 # 查询字符串删除信息
@@ -247,6 +276,8 @@ def delid(qsid):
     flash("删除成功")
     return redirect("/")
 
+
+scheduler.start()
 
 if __name__ == '__main__':
     app.run()
