@@ -56,21 +56,24 @@
                 {% endfor %}
             </main>
             <form action="" method="post">
-                <div class="mb-3">
-                    <label for="exampleInputEmail1" class="form-label">订阅数据邮箱</label>
-                    <input type="email" class="form-control" id="exampleInputEmail1"
-                           aria-describedby="emailHelp" name="email">
-                    {#            <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>#}
-                </div>
-                <div class="mb-3">
-                    <label for="exampleInputPassword1" class="form-label">省份代码</label>
-                    <input type="text" class="form-control" placeholder="11,43" id="exampleInputPassword1" name="num">
-                </div>
+                <div class="form-group">
+                    <label for="exampleInputEmail1">订阅邮箱</label>
+                    <input type="email" class="form-control" name="email" id="exampleInputEmail1"
+                           aria-describedby="emailHelp">
 
-                {#                <button type="submit" class="btn btn-primary">Submit</button>#}
-                {#                <button type="submit" class="btn btn-primary" name="auto" value="auto">自动订阅</button>#}
-                <input class="btn btn-primary" type="submit" name="submit" value="订阅">
-                <input class="btn btn-primary" type="submit" name="submit" value="自动订阅">
+                </div>
+                <div class="form-group">
+                    <label for="exampleInputPassword1">省份代码</label>
+                    <input type="text" class="form-control" name="num" id="exampleInputPassword1">
+                    <small id="emailHelp" class="form-text text-muted">
+                        如需订阅北京和湖南省数据请输入:11,43
+                    </small>
+                </div>
+                <div class="form-group form-check">
+                    <input type="checkbox" class="form-check-input" name='check' id="exampleCheck1">
+                    <label class="form-check-label" for="exampleCheck1">Check me out</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
             </form>
 
             {#            1One of three columns#}

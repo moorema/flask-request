@@ -3,12 +3,12 @@ import sqlite3
 from flask_mail import Mail, Message
 from flask_sqlalchemy import SQLAlchemy
 import os
-from huey import SqliteHuey
+from huey import SqliteHuey, crontab
 from datetime import *
 
 app = Flask(__name__)
 huey = SqliteHuey(filename='huey.db')
-huey.immediate = True  # 即使模式,测试和开发用
+huey.immediate = False  # 即使模式,测试和开发用
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pc.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -30,6 +30,7 @@ class User(db.Model):
     email = db.Column(db.String(128), nullable=False, unique=True)
     sshengfen = db.Column(db.String(128), nullable=False)
     sshengfenstr = db.Column(db.String(128), nullable=False)
+    isActive = db.Column(db.Boolean(), nullable=False, default=False)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -44,7 +45,8 @@ def hello_world():  # put application's code here
     else:
         email = request.form.get('email')
         num = request.form.get("num")
-        # dingyue = request.form['submit']
+        checkme = request.form.get("check")
+        # anniu = request.form['submit']
         # print(dingyue)
         # 省份数字代码
         sfennum = [
@@ -125,14 +127,7 @@ def hello_world():  # put application's code here
         cunlist = []
         filename_list = []
         nums = num.split(',')
-        # 遍历数据存储文件夹,检查是否有数据存在
-        old_path = 'static'
-        old_filelist = []
-        for root, dirs, files in os.walk(old_path):
-            for file in files:
-                # print(os.path.join(root,file))
-                old_filelist.append(os.path.join(root, file))
-        print(old_filelist)
+        zs_filelist = []
         # 发邮件
         msg = Message(subject="Hello World!",
                       sender="472381899@qq.com",
@@ -153,18 +148,36 @@ def hello_world():  # put application's code here
 
                     for cs in cunstr.split(","):
                         filename_list.append("static/" + str(date.today()) + "." + cs + ".csv")
-                    print(filename_list)
-
+                    # print(filename_list)
+                    # print(anniu)
                     old_user.sshengfen = num
                     old_user.sshengfenstr = cunstr
+                    print(checkme)
+                    if checkme == 'on':
+                        old_user.isActive = True
+                    else:
+                        old_user.isActive = False
                     db.session.commit()
-                    # 发邮件 并检查动态生成的文件是否在遍历的真实存储文件夹内
-                    if filename_list in old_filelist:
-                        for flist in filename_list:
+
+                    for flist in filename_list:
+                        if os.path.exists(flist):
+                            zs_filelist.append(flist)
+                    if zs_filelist:
+                        for flist in zs_filelist:
                             with app.open_resource(flist) as fp:
                                 msg.attach(flist, 'text/plain', fp.read())
-                    else:  # 后期增加功能
-                        pass
+
+                            # mail.send(msg)
+                        send_async_email(msg)
+
+                        # send_async_email(msg)
+                        # 定时调度发邮件
+
+                    else:
+                        flash("没有数据,请稍后再试")
+
+                    # else:  # 后期增加功能
+                    #     pass
                     # flash("数据还未抓取到")
 
                     # 异步发送数据附件
@@ -180,18 +193,21 @@ def hello_world():  # put application's code here
                     cunstr = ",".join(cunlist)
                     for cs in cunstr.split(","):
                         filename_list.append("static/" + str(date.today()) + "." + cs + ".csv")
-                    print(filename_list)
-                    if filename_list in old_filelist:
-                        for flist in filename_list:
-                            with app.open_resource(flist) as fp:
-                                msg.attach(flist, 'text/plain', fp.read())
-                    else:  # 后期增加功能
-                        pass
-                        # flash("数据还未抓取到")
+                    # if filename_list in old_filelist:
+                    #     for flist in filename_list:
+                    #         with app.open_resource(flist) as fp:
+                    #             msg.attach(flist, 'text/plain', fp.read())
+                    # else:  # 后期增加功能
+                    #     pass
+                    #     # flash("数据还未抓取到")
                     new_user = User()
                     new_user.email = email
                     new_user.sshengfenstr = cunstr
                     new_user.sshengfen = num
+                    if checkme:
+                        new_user.isActive = True
+                    else:
+                        new_user.isActive = False
                     db.session.add(new_user)
                     db.session.commit()
                     # 发邮件
@@ -209,16 +225,16 @@ def hello_world():  # put application's code here
 
 
 # huey邮件处理
-@huey.task(retries=3)
+@huey.task()
 def send_async_email(msg):
     with app.app_context():
         mail.send(msg)
 
 
 # 管理定时发送邮件
-@app.route("/dingshi_email", methods=['GET', 'POST'])
-def ds_email():
-    pass
+# @app.route("/dingshi_email", methods=['GET', 'POST'])
+# def ds_email():
+#     return "aaa"
 
 
 # 查询字符串删除信息
