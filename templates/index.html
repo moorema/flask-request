@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>index</title>
-    <link href="static/css/bootstrap.css" rel="stylesheet">
+    <link href="../static/css/bootstrap.css" rel="stylesheet">
+    <script src="../static/js/jquery-3.6.0.js"></script>
 </head>
 <body>
 
@@ -46,7 +47,12 @@
         <div class="col-4">
             <main>
                 {% for message in get_flashed_messages() %}
-                    <div class="alert alert-danger" role="alert">{{ message }}</div>
+                    <div class="alert alert-primary" role="alert" id="divid">{{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+
                 {% endfor %}
             </main>
             <form action="" method="post">
@@ -61,7 +67,10 @@
                     <input type="text" class="form-control" placeholder="11,43" id="exampleInputPassword1" name="num">
                 </div>
 
-                <button type="submit" class="btn btn-primary">Submit</button>
+                {#                <button type="submit" class="btn btn-primary">Submit</button>#}
+                {#                <button type="submit" class="btn btn-primary" name="auto" value="auto">自动订阅</button>#}
+                <input class="btn btn-primary" type="submit" name="submit" value="订阅">
+                <input class="btn btn-primary" type="submit" name="submit" value="自动订阅">
             </form>
 
             {#            1One of three columns#}
@@ -98,5 +107,19 @@
     </div>
 </div>
 </body>
-<script src="static/js/bootstrap.js"></script>
+<script src="../static/js/bootstrap.js"></script>
+
+
+<script type='text/javascript'>
+    $(document).ready(
+        function () {
+            /**
+             *1.delay函数是jquery 1.4.2新增的函数
+             *2.hide函数里必须放一个0,不然延时不起作用
+             */
+            $('#divid').delay(6000).hide(0);
+        }
+    );
+</script>
+
 </html>
