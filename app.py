@@ -44,6 +44,8 @@ def hello_world():  # put application's code here
     else:
         email = request.form.get('email')
         num = request.form.get("num")
+        # dingyue = request.form['submit']
+        # print(dingyue)
         # 省份数字代码
         sfennum = [
 
@@ -119,10 +121,18 @@ def hello_world():  # put application's code here
             '42': '湖北省',
             '82': '澳门特别行政区'
         }
-        # 提交的省份代码转换成省份纯数据库
+
         cunlist = []
         filename_list = []
         nums = num.split(',')
+        # 遍历数据存储文件夹,检查是否有数据存在
+        old_path = 'static'
+        old_filelist = []
+        for root, dirs, files in os.walk(old_path):
+            for file in files:
+                # print(os.path.join(root,file))
+                old_filelist.append(os.path.join(root, file))
+        print(old_filelist)
         # 发邮件
         msg = Message(subject="Hello World!",
                       sender="472381899@qq.com",
@@ -148,14 +158,18 @@ def hello_world():  # put application's code here
                     old_user.sshengfen = num
                     old_user.sshengfenstr = cunstr
                     db.session.commit()
-                    # 发邮件
-                    for flist in filename_list:
-                        with app.open_resource(flist) as fp:
-                            msg.attach(flist, 'text/plain', fp.read())
-                    # with app.open_resource(filename_beijing) as fp:
-                    #     msg.attach(filename_beijing, 'text/plain', fp.read())
+                    # 发邮件 并检查动态生成的文件是否在遍历的真实存储文件夹内
+                    if filename_list in old_filelist:
+                        for flist in filename_list:
+                            with app.open_resource(flist) as fp:
+                                msg.attach(flist, 'text/plain', fp.read())
+                    else:  # 后期增加功能
+                        pass
+                    # flash("数据还未抓取到")
+
+                    # 异步发送数据附件
                     # send_async_email(msg)
-                    mail.send(msg)
+                    # mail.send(msg)
                     flash('订阅修改成功')
                     return redirect("/")
                 elif email:
@@ -167,11 +181,13 @@ def hello_world():  # put application's code here
                     for cs in cunstr.split(","):
                         filename_list.append("static/" + str(date.today()) + "." + cs + ".csv")
                     print(filename_list)
-
-                    for flist in filename_list:
-                        with app.open_resource(flist) as fp:
-                            msg.attach(flist, 'text/plain', fp.read())
-
+                    if filename_list in old_filelist:
+                        for flist in filename_list:
+                            with app.open_resource(flist) as fp:
+                                msg.attach(flist, 'text/plain', fp.read())
+                    else:  # 后期增加功能
+                        pass
+                        # flash("数据还未抓取到")
                     new_user = User()
                     new_user.email = email
                     new_user.sshengfenstr = cunstr
@@ -180,7 +196,7 @@ def hello_world():  # put application's code here
                     db.session.commit()
                     # 发邮件
                     # send_async_email(msg)
-                    mail.send(msg)
+                    # mail.send(msg)
                     flash('订阅成功')
                     return redirect("/")
                 else:
@@ -197,6 +213,12 @@ def hello_world():  # put application's code here
 def send_async_email(msg):
     with app.app_context():
         mail.send(msg)
+
+
+# 管理定时发送邮件
+@app.route("/dingshi_email", methods=['GET', 'POST'])
+def ds_email():
+    pass
 
 
 # 查询字符串删除信息
