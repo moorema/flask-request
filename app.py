@@ -104,11 +104,10 @@ def hello_world():  # put application's code here
         else:
             return render_template('index.html')
     else:
+        # 接收前端数据
         email = request.form.get('email')
         num = request.form.get("num")
         checkme = request.form.get("check")
-        # anniu = request.form['submit']
-        # print(dingyue)
         # 省份数字代码
         sfennum = [
 
@@ -185,104 +184,75 @@ def hello_world():  # put application's code here
             '82': '澳门特别行政区'
         }
 
-        cunlist = []
-        filename_list = []
         nums = num.split(',')
+        # 真实数据文件列表
         zs_filelist = []
-        # 发邮件
+
+        def numtostr(n):  # 把提交来的省份代码转成省份
+            cunlist = []
+            for cl in n:
+                cunlist.append(sfen[cl])
+            cunstr = ",".join(cunlist)
+            return cunstr
+
+        def is_ok_send_email(zslist):  # 判断附件是否存在并发邮件
+            if zslist:
+                for flist in zslist:
+                    with app.open_resource(flist) as fp:
+                        msg.attach(flist, 'text/plain', fp.read())
+                send_async_email(msg)
+                flash('订阅成功并发送邮件')
+                return redirect("/")
+            else:
+                flash("已记录,没有数据请稍后再试")
+                return redirect("/")
+
+        # 邮件内容
         msg = Message(subject="Hello World!",
                       sender="472381899@qq.com",
                       recipients=[email])
         msg.body = "testing"
+        # 查询
+        old_user = User.query.filter_by(email=email).first()
+        # 插入数据
         for snums in nums:
-            # filename_a = "static/" + str(date.today()) + "." + sfen[str(snums)] + ".csv"
-            # print(filename_a)
-            # print(snums)
             if snums in sfennum:  # 校验前端输入的代码是否符合规定
-
-                # 增删改查
-                old_user = User.query.filter_by(email=email).first()
+                # 判断路径是否真实,存储到zs_filelist中
+                if os.path.exists(filename_list010[snums]):
+                    zs_filelist.append(filename_list010[snums])
+                # 老用户修改
                 if old_user:
-                    for cl in nums:
-                        cunlist.append(sfen[cl])
-                    cunstr = ",".join(cunlist)
-
-                    for cs in cunstr.split(","):
-                        filename_list.append("static/" + str(date.today()) + "." + cs + ".csv")
-                    # print(filename_list)
-                    # print(anniu)
                     old_user.sshengfen = num
-                    old_user.sshengfenstr = cunstr
-                    print(checkme)
+                    old_user.sshengfenstr = numtostr(n=nums)
                     if checkme == 'on':
                         old_user.isActive = True
                     else:
                         old_user.isActive = False
                     db.session.commit()
-
-                    for flist in filename_list:
-                        if os.path.exists(flist):
-                            zs_filelist.append(flist)
-                    if zs_filelist:
-                        for flist in zs_filelist:
-                            with app.open_resource(flist) as fp:
-                                msg.attach(flist, 'text/plain', fp.read())
-
-                            # mail.send(msg)
-                        send_async_email(msg)
-
-                        # send_async_email(msg)
-                        # 定时调度发邮件
-
-                    else:
-                        flash("没有数据,请稍后再试")
-
-                    # else:  # 后期增加功能
-                    #     pass
-                    # flash("数据还未抓取到")
-
-                    # 异步发送数据附件
-                    # send_async_email(msg)
-                    # mail.send(msg)
-                    flash('订阅修改成功')
-                    return redirect("/")
+                    is_ok_send_email(zs_filelist)
+                # 新用户
                 elif email:
-                    # print(email)
-                    # print(num)
-                    for cl in nums:
-                        cunlist.append(sfen[cl])
-                    cunstr = ",".join(cunlist)
-                    for cs in cunstr.split(","):
-                        filename_list.append("static/" + str(date.today()) + "." + cs + ".csv")
-                    # if filename_list in old_filelist:
-                    #     for flist in filename_list:
-                    #         with app.open_resource(flist) as fp:
-                    #             msg.attach(flist, 'text/plain', fp.read())
-                    # else:  # 后期增加功能
-                    #     pass
-                    #     # flash("数据还未抓取到")
+                    # 准备提交数据
                     new_user = User()
                     new_user.email = email
-                    new_user.sshengfenstr = cunstr
+                    new_user.sshengfenstr = numtostr(n=nums)
                     new_user.sshengfen = num
+                    # 判断前端传来的数据是否自动订阅
                     if checkme:
                         new_user.isActive = True
                     else:
                         new_user.isActive = False
+                    # 提交到数据库中
                     db.session.add(new_user)
                     db.session.commit()
-                    # 发邮件
-                    # send_async_email(msg)
-                    # mail.send(msg)
-                    flash('订阅成功')
-                    return redirect("/")
+                    # 判断并发邮件
+                    is_ok_send_email(zs_filelist)
                 else:
                     flash('请正确输入email和省份代码')
                 return redirect("/")
             else:
                 flash('不能为空,请重新输入')
                 return redirect("/")
-        # 发邮件
 
 
 # huey邮件处理
@@ -313,7 +283,6 @@ def job1():
                     msg.body = "数据爬取中稍后自动重发"
             msg.recipients = [user.email]
             send_async_email(msg)
-            # print(f"邮件: {user.email} 已发送")
 
 
 # 查询字符串删除信息
