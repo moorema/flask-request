@@ -31,7 +31,7 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 
 huey = SqliteHuey(filename='huey.db')
-huey.immediate = False  # 即使模式,测试和开发用
+huey.immediate = True  # 即使模式,测试和开发用
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///pc.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -54,6 +54,44 @@ class User(db.Model):
     sshengfen = db.Column(db.String(128), nullable=False)
     sshengfenstr = db.Column(db.String(128), nullable=False)
     isActive = db.Column(db.Boolean(), nullable=False, default=False)
+
+
+filename_list010 = {
+    '11': "static/" + str(date.today()) + ".北京市" + ".csv",
+    '43': "static/" + str(date.today()) + ".湖南省" + ".csv",
+    '12': "static/" + str(date.today()) + ".天津市" + ".csv",
+    '44': "static/" + str(date.today()) + ".广东省" + ".csv",
+    '13': "static/" + str(date.today()) + ".河北省" + ".csv",
+    '45': "static/" + str(date.today()) + ".广西壮族自治区" + ".csv",
+    '14': "static/" + str(date.today()) + ".山西省" + ".csv",
+    '46': "static/" + str(date.today()) + ".海南省" + ".csv",
+    '15': "static/" + str(date.today()) + ".内蒙古自治区" + ".csv",
+    '50': "static/" + str(date.today()) + ".重庆市" + ".csv",
+    '21': "static/" + str(date.today()) + ".辽宁省" + ".csv",
+    '51': "static/" + str(date.today()) + ".四川省" + ".csv",
+    '22': "static/" + str(date.today()) + ".吉林省" + ".csv",
+    '52': "static/" + str(date.today()) + ".贵州省" + ".csv",
+    '23': "static/" + str(date.today()) + ".黑龙江省" + ".csv",
+    '53': "static/" + str(date.today()) + ".云南省" + ".csv",
+    '31': "static/" + str(date.today()) + ".上海市" + ".csv",
+    '54': "static/" + str(date.today()) + ".西藏自治区" + ".csv",
+    '32': "static/" + str(date.today()) + ".江苏省" + ".csv",
+    '61': "static/" + str(date.today()) + ".陕西省" + ".csv",
+    '33': "static/" + str(date.today()) + ".浙江省" + ".csv",
+    '62': "static/" + str(date.today()) + ".甘肃省" + ".csv",
+    '34': "static/" + str(date.today()) + ".安徽省" + ".csv",
+    '63': "static/" + str(date.today()) + ".青海省" + ".csv",
+    '35': "static/" + str(date.today()) + ".福建省" + ".csv",
+    '64': "static/" + str(date.today()) + ".宁夏回族自治区" + ".csv",
+    '36': "static/" + str(date.today()) + ".江西省" + ".csv",
+    '65': "static/" + str(date.today()) + ".新疆维吾尔自治区" + ".csv",
+    '37': "static/" + str(date.today()) + ".山东省" + ".csv",
+    '71': "static/" + str(date.today()) + ".台湾省" + ".csv",
+    '41': "static/" + str(date.today()) + ".河南省" + ".csv",
+    '81': "static/" + str(date.today()) + ".香港特别行政区" + ".csv",
+    '42': "static/" + str(date.today()) + ".湖北省" + ".csv",
+    '82': "static/" + str(date.today()) + ".澳门特别行政区" + ".csv"
+}
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -255,15 +293,27 @@ def send_async_email(msg):
 
 
 # @scheduler.task('cron', id='auto_send', day_of_week='0,2', hour='9')
-@scheduler.task('interval', id='auto_send', seconds=3)
+@scheduler.task('interval', id='auto_send', seconds=10)
 def job1():
-    auto_send_user = User.query.all()
-    print(auto_send_user)
-    for user in auto_send_user:
-        print(user.isActive)
-    # for i in auto_send_user:
-
-    print('---------')
+    msg = Message(subject="自动订阅数据请查收",
+                  sender="472381899@qq.com",
+                  recipients=[])
+    msg.body = "附件数据请查收"
+    auto_email = User.query.filter_by(isActive=True).all()
+    if auto_email:
+        for user in auto_email:
+            print(f"邮箱: {user.email} 订阅省份: {user.sshengfenstr} ")
+            usershengfen_list = str(user.sshengfen)
+            for flist in usershengfen_list.split(','):
+                if os.path.exists(filename_list010[flist]):
+                    print(filename_list010[flist])
+                    with app.open_resource(filename_list010[flist]) as fp:
+                        msg.attach(filename_list010[flist], 'text/plain', fp.read())
+                else:
+                    msg.body = "数据爬取中稍后自动重发"
+            msg.recipients = [user.email]
+            send_async_email(msg)
+            # print(f"邮件: {user.email} 已发送")
 
 
 # 查询字符串删除信息
@@ -277,7 +327,7 @@ def delid(qsid):
     return redirect("/")
 
 
-scheduler.start()
+# scheduler.start()
 
 if __name__ == '__main__':
     app.run()
