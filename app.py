@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 
 class SchedulerConfig(object):
-    # 持久化配置，数据持久化至MongoDB
+    # 持久化配置
     SCHEDULER_JOBSTORES = {
         'default': SQLAlchemyJobStore(url='sqlite:///jobstores.db')}
     # 线程池配置，最大20个线程
@@ -43,8 +43,6 @@ app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-# app.config['MAIL_USERNAME'] = '472381899@qq.com'
-# app.config['MAIL_PASSWORD'] = 'rzdlhwmecuiebiid'
 mail = Mail(app)
 
 
