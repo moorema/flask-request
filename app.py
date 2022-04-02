@@ -1,7 +1,6 @@
 import datetime
 import os
 from datetime import *
-from apscheduler.executors.pool import ThreadPoolExecutor
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from flask import Flask, render_template, request, redirect, flash
 from flask_apscheduler import APScheduler
@@ -16,8 +15,6 @@ class SchedulerConfig(object):
     # 持久化配置
     SCHEDULER_JOBSTORES = {
         'default': SQLAlchemyJobStore(url='sqlite:///jobstores.db')}
-    # 线程池配置，最大20个线程
-    SCHEDULER_EXECUTORS = {'default': ThreadPoolExecutor(20)}
     # 调度开关开启
     SCHEDULER_API_ENABLED = True
     # 设置容错时间为 1小时
