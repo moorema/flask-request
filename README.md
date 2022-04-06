@@ -5,7 +5,7 @@ flask后台管理数据发邮件,爬虫单独部署多线程爬取,flask配合hu
 
 # 生产环境部署
 运行前生成sqlite数据库文件
-from app import db
-db.create_all()
-
-nginx gunicorn多进程运行 supervisor管理守护进程
+1. from app import db
+2. db.create_all()
+3. 使用venv环境管理依赖pip install -r requirements.txt
+4. nginx gunicorn多进程运行 supervisor管理守护进程
