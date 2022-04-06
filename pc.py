@@ -23,18 +23,14 @@ def get_sid():
 
 
 def get_byg_csv(url, ck):
-    #     url = f'http://www.hngp.gov.cn/henan/search?pageSize=50&ctk={sId}&q=殡&pageNo=1'
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36 Edg/99.0.1150.36',
         'Referer': 'http://www.hngp.gov.cn/henan'
     }
 
     respm = requests.get(url, cookies=ck, headers=headers)
-    # 解析html
     html = etree.HTML(respm.text)
-    # 拿到数据的所有li
     lis = html.xpath('/html/body/div[4]/div/div[1]/ul/li')
-    # 根据查询关键字自动判断页码总数
     yema = html.xpath("//li[@class='pageInfo']/text()")
     numyema = re.findall("\d+", yema[0])
     numyema = int(numyema[0]) + 1
@@ -42,7 +38,6 @@ def get_byg_csv(url, ck):
     filename = str(date.today()) + ".河南省.csv"
     f = open('pachong_data/' + filename, mode='a', encoding='utf-8', newline="")
     csvwriter = csv.writer(f)
-    # 遍历每一个li
     for li in lis:
         title = li.xpath('./a/text()')
         gs = li.xpath('./p/span[1]/span/text()')
@@ -65,18 +60,6 @@ def get_xianc(qi, shi, qs):
             print(f"第{i}页爬取完成")
 
 
-# 普通爬取
-# time_start = time.time()
-# for i in range(1, 123):
-#     try:
-#         madata = get_byg_csv(f'http://www.hngp.gov.cn/henan/search?ctk={sId}&q=殡仪馆&pageNo={i}')
-#         print(f"第{i}页爬取成功!")
-#         time.sleep(2)
-#     except Exception as e:
-#         print(f"error is {e}")
-# print("所有页数爬取成功!")
-# time_stop = time.time()
-# print(f"爬取完成需要的时间是(秒): {time_stop - time_start} s")
 
 
 if __name__ == '__main__':
